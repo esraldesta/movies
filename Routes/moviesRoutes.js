@@ -4,11 +4,11 @@ const {getAllMovies,createMovie,getMovie,updateMovie,deleteMovie,checkID,validat
 const moviesRouter = express.Router();
 
 
-moviesRouter.param("id",checkID)
+// moviesRouter.param("id",checkID)
 
 moviesRouter.route("/")
     .get(getAllMovies)
-    .post(validateBody, createMovie)
+    .post(createMovie)
 
 moviesRouter.route("/:id")
     .get(getMovie)
