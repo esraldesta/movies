@@ -1,9 +1,24 @@
 const mongoose = require("mongoose")
 const Movie = require('../Models/movieModel')
+const ApiFeatures  = require("../utils/ApiFeatures")
+
+exports.getHighestRated = (req, res, next) => {
+    req.query.limit = '5';
+    req.query.sort = '-ratings';
+
+    next();
+}
 
 exports.getAllMovies = async (req,res)=>{
     try {
-        const movies = await Movie.find()
+        const features = new ApiFeatures(Movie.find(), req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
+
+        let movies = await features.query;
+        // const movies = await Movie.find(req.query)
         res.status(200).json({
             status:"success",
             length:movies.length,
@@ -89,4 +104,68 @@ exports.deleteMovie = async (req,res)=>{
         })
     }
 
+}
+
+exports.getMovieStats = async (req, res) => {
+    try{
+        const stats = await Movie.aggregate([
+            { $match: {ratings: {$gte: 4.5}}},
+            { $group: {
+                _id: '$releaseYear', // null to put them all in one group
+                avgRating: { $avg: '$ratings'},
+                avgPrice: { $avg: '$price' },
+                minPrice: { $min: '$price' },
+                maxPrice: { $max: '$price' },
+                priceTotal: { $sum: '$price'},
+                movieCount: { $sum: 1} //  1 for accending
+            }},
+            { $sort: { minPrice: 1}}
+            //{ $match: {maxPrice: {$gte: 60}}}
+        ]);
+
+        res.status(200).json({
+            status: 'success',
+            count: stats.length,
+            data: {
+                stats
+            }
+        });
+    }catch(err) {
+        res.status(404).json({
+            status:"fail",
+            message: err.message
+        });
+    }
+}
+
+exports.getMovieByGenre = async (req, res) => {
+    try{
+        const genre = req.params.genre;
+        const movies = await Movie.aggregate([
+            {$unwind: '$genres'},
+            {$group: {
+                _id: '$genres',
+                movieCount: { $sum: 1},
+                movies: {$push: '$name'}, 
+            }},
+            {$addFields: {genre: "$_id"}},
+            {$project: {_id: 0}},
+            {$sort: {movieCount: -1}},
+            //{$limit: 6}
+            //{$match: {genre: genre}}
+        ]);
+
+        res.status(200).json({
+            status: 'success',
+            count: movies.length,
+            data: {
+                movies
+            }
+        });
+    }catch(err) {
+        res.status(404).json({
+            status:"fail",
+            message: err.message
+        });
+    }
 }
