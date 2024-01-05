@@ -58,15 +58,15 @@ const movieSchema = new mongoose.Schema({
     },
     coverImage:{
         type: String,
-        require: [true, 'Cover image is required field!']
+        required: [true, 'Cover image is required field!']
     },
     actors: {
         type: [String],
-        require: [true, 'actors is required field!']
+        required: [true, 'actors is required field!']
     },
     price: {
         type: Number,
-        require: [true, 'Price is required field!']
+        required: [true, 'Price is required field!']
     },
     createdBy: String
 }, {
@@ -116,29 +116,29 @@ movieSchema.post('save', function(doc, next){
 
 
 // applies for any query which starts with find
-movieSchema.pre(/^find/, function(next){
-    this.find({releaseDate: {$lte: Date.now()}});
-    this.startTime = Date.now()
-    next();
-});
+// movieSchema.pre(/^find/, function(next){
+//     this.find({releaseDate: {$lte: Date.now()}});
+//     this.startTime = Date.now()
+//     next();
+// });
 
 
-movieSchema.post(/^find/, function(docs, next){
-    this.find({releaseDate: {$lte: Date.now()}});
-    this.endTime = Date.now();
+// movieSchema.post(/^find/, function(docs, next){
+//     this.find({releaseDate: {$lte: Date.now()}});
+//     this.endTime = Date.now();
 
-    const content = `Query took ${this.endTime - this.startTime} milliseconds to fetch the documents.`
-    fs.writeFileSync('./Log/log.txt', content, {flag: 'a'}, (err) => {
-        console.log(err.message);
-    });
+//     const content = `Query took ${this.endTime - this.startTime} milliseconds to fetch the documents.`
+//     fs.writeFileSync('./Log/log.txt', content, {flag: 'a'}, (err) => {
+//         console.log(err.message);
+//     });
 
-    next();
-});
+//     next();
+// });
 
-movieSchema.pre('aggregate', function(next){
-    console.log(this.pipeline().unshift({ $match: {releaseDate: {$lte: new Date()}}}));
-    next();
-});
+// movieSchema.pre('aggregate', function(next){
+//     console.log(this.pipeline().unshift({ $match: {releaseDate: {$lte: new Date()}}}));
+//     next();
+// });
 
 const Movie =mongoose.model("Movie",movieSchema)
 
