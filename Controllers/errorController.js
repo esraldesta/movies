@@ -1,7 +1,7 @@
 const CustomError = require("../utils/CustomError")
 
 const devErrors = (res,error)=>{
-    res.status(error.statusCode).json({
+    return res.status(error.statusCode).json({
         status:error.status,
         message:error.message,
         stackTrace:error.stackTrace,
@@ -11,15 +11,13 @@ const devErrors = (res,error)=>{
 
 const prodErrors = (res,error)=>{
     if(error.isOperational){
-        console.log("is operational");
-        res.status(error.statusCode).json({
+       return res.status(error.statusCode).json({
             status:error.status,
             message:error.message
         })
     }
     else{
-        console.log("is not operational");
-       res.status(500).json({
+       return res.status(500).json({
         "status":'fail',
         "message":"Some thing went wrong! Please try again later"
        })
@@ -46,12 +44,18 @@ const validationErrorHandler = (err) => {
     return new CustomError(msg, 400);
 }
 
+const handleExpiredToken = (err)=>{
+    return new CustomError("JWT has expired. Please login in again!",401)    
+}
+
+const handleJWTError = (err)=>{
+    return new CustomError("Invalid token. Please try again!",401)    
+}
 
 module.exports = (error,req,res,next)=>{
     error.statusCode = error.statusCode || 500
     error.status = error.status|| "error"
-    console.log(process.env.NODE_ENV);
-    if(process.env.NODE_ENV == "devlopment"){
+    if(process.env.NODE_ENV == "development"){
         devErrors(res,error)  
     }
     else if(process.env.NODE_ENV == "production"){
@@ -60,6 +64,8 @@ module.exports = (error,req,res,next)=>{
             if(error.name == "CastError") error = castErrorHandler(error)
             if(error.code == 11000) error = duplicateKeyErrorHandler(error)
             if(error.name === 'ValidationError') error = validationErrorHandler(error);
+            if(error.name === "TokenExpiredError") error = handleExpiredToken(error)
+            if(error.name === "JsonWebTokenError") error = handleJWTError(error)
             prodErrors(res,error)
 
     }

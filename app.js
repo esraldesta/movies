@@ -16,6 +16,7 @@ process.on("uncaughtException",(err)=>{
 
 const app = express()
 const moviesRouter = require("./Routes/moviesRoutes")
+const authRouter = require("./Routes/authRoutes")
 
 app.use(express.json())
 if(process.env.NODE_ENV == "devlopment"){
@@ -23,6 +24,7 @@ if(process.env.NODE_ENV == "devlopment"){
 }
 app.use(express.static("./public"))
 app.use("/api/v1/movies",moviesRouter)
+app.use("/api/v1/users",authRouter)
 
 app.all("*",(req,res,next)=>{
     // res.status(404).json({
