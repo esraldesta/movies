@@ -42,7 +42,13 @@ const userSchema = new Schema({
     passwordChangedAt:Date,
     passwordResetToken : String,
     passwordResetTokenExpires:Date
-})
+} , {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+      },
+    },
+  })
 
 userSchema.pre("save",async function(next){
     if(!this.isModified("password")) return next();
@@ -50,8 +56,9 @@ userSchema.pre("save",async function(next){
     this.confirmPassword = undefined;
 })
 
-userSchema.methods.comparePasswordInDb = async function(pswd,pswdDB){
-    return await bcrypt.compare(pswd,pswdDB)
+userSchema.methods.comparePasswordInDb = async function(pswd){
+    console.log("this.password =>",this.password);
+    return await bcrypt.compare(pswd,this.password)
 }
 
 userSchema.methods.isPasswordChanged = async function(JWTTimeStamp){

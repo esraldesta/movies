@@ -29,11 +29,11 @@ exports.login = asyncErrorHander(async (req,res,next)=>{
         const error = new CustomError("Please Provide both email and password",400)
         return next(error)
     }
-    
+
     const user = await User.findOne({email}).select("+password")
 
-    if(!user || !await user.comparePasswordInDb(password,user.password)){
-        const error = new CustomError("Incorrect email or password") 
+    if(!user || !await user.comparePasswordInDb(password)){
+        const error = new CustomError("Incorrect email or password",401) 
         return next(error)
     }
 

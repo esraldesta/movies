@@ -59,8 +59,6 @@ module.exports = (error,req,res,next)=>{
         devErrors(res,error)  
     }
     else if(process.env.NODE_ENV == "production"){
-        console.log(process.env.NODE_ENV);
-
             if(error.name == "CastError") error = castErrorHandler(error)
             if(error.code == 11000) error = duplicateKeyErrorHandler(error)
             if(error.name === 'ValidationError') error = validationErrorHandler(error);
